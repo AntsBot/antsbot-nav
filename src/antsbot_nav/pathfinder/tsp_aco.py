@@ -1,0 +1,2 @@
+class TSPACO():
+    pass

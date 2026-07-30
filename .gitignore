@@ -2,6 +2,7 @@
 __pycache__/
 *.py[codz]
 *$py.class
+*.so
 
 # Distribution / packaging
 .Python
@@ -92,3 +93,9 @@ Thumbs.db
 
 # Docs build output
 /site
+
+# MATLAB
+/matlab
+
+# Rust
+/accelerator/target
