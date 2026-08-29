@@ -19,10 +19,6 @@ class ACOBase:
 
     best_path: list | None = field(default=None, init=False)
     best_cost: float = field(default=float("inf"), init=False)
-    
-    def _initialize_pheromones(self, shape: tuple[int, int]) -> None:
-            """Initializes the pheromone levels for the given problem shape."""
-            self._pheromones = np.full(shape, self.initial_pheromone)
         
     @staticmethod
     def _roulette_select(probabilities: np.ndarray) -> int:

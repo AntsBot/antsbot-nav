@@ -1,6 +1,8 @@
 from dataclasses import dataclass, field
 from tqdm import tqdm
+import math
 import numpy as np
+
 from .types import ComputeBackend, GridProblem, ProblemType, TSPProblem
 from .aco import ACOBase, Node, Edge
 
@@ -22,8 +24,6 @@ class GridACO(ACOBase):
     """
     # To avoid infinite loops, limit ant steps.
     _max_steps: int = field(default=0, init=False, repr=False)
-
-
 
     def _initialize_pheromones(self, shape: tuple[int, int]) -> None:
         """Initialize one pheromone value for every traversable grid edge."""
@@ -77,15 +77,21 @@ class GridACO(ACOBase):
                 self._pheromones[edge] += pheromone_deposit
 
     def _compute_heuristic(self, from_node: tuple[int, int], to_node: tuple[int, int]) -> float:
-        dr = abs(from_node[0] - to_node[0])
-        dc = abs(from_node[1] - to_node[1])
-        if self.problem.connectivity == 8:
-            distance = max(dr, dc)
-        else:
-            distance = dr + dc
-        if distance == 0:
-            return 1.0
-        return 1.0 / distance
+        """Compute the heuristic desirability of moving from one node to another.
+ 
+        Args:
+            from_node (tuple[int, int]): The node from which the ant will move.
+            to_node (tuple[int, int]): The node to which the ant will move.
+ 
+        Returns:
+            float: The heuristic desirability of the move.
+        """
+        if from_node == to_node:
+            return 100.0
+        dr = from_node[0] - to_node[0]
+        dc = from_node[1] - to_node[1]
+        
+        return 1.0 / math.sqrt(dr * dr + dc * dc)
 
     def _get_unvisited_neighbors(
         self, current_node: tuple[int, int], visited: set[tuple[int, int]]
@@ -157,26 +163,29 @@ class GridACO(ACOBase):
         """
         path = [start]
         visited = {start}
-        current_node = start
         steps = 0
- 
-        while current_node != end:
+
+        while path[-1] != end:
             if steps >= self._max_steps:
-                return None  # exceeded budget, likely unreachable or stuck
- 
-            neighbors = self._get_unvisited_neighbors(current_node, visited)
+                return None
+
+            current = path[-1]
+            neighbors = self._get_unvisited_neighbors(current, visited)
+
             if not neighbors:
-                return None  # dead end
- 
-            probabilities = self._transition_probabilities(current_node, neighbors, end)
-            next_node_index = self._roulette_select(probabilities)
-            next_node = neighbors[next_node_index]
- 
+                # dead end, back to previous node
+                if len(path) == 1:
+                    return None  # Really dead, no way to go back
+                path.pop()
+                steps += 1
+                continue
+
+            probabilities = self._transition_probabilities(current, neighbors, end)
+            next_node = neighbors[self._roulette_select(probabilities)]
             path.append(next_node)
             visited.add(next_node)
-            current_node = next_node
             steps += 1
- 
+
         return path
  
     @staticmethod
@@ -190,7 +199,12 @@ class GridACO(ACOBase):
             float: Number of edges traversed. A single-node path costs 0.
         """
         return float(len(path) - 1)
-
+    
+    def _run_rust(self, progress: bool = False) -> tuple[list, float]:
+        #placeholder for Rust backend implementation
+        raise NotImplementedError("Rust backend is not implemented yet.")
+    
+    
     def run(self, progress: bool = False) -> tuple[list, float]:
         """Run the ACO algorithm to find a path from start to end.
 
@@ -208,7 +222,10 @@ class GridACO(ACOBase):
         """
         if not hasattr(self, "problem"):
             raise RuntimeError("No problem loaded — call `load()` before `run()`.")
-        
+
+        if self.backend == ComputeBackend.RUST:
+            return self._run_rust(progress)
+
         if progress:
             iterator = tqdm(range(self.max_iterations), desc="ACO Iterations", position=0)
             
