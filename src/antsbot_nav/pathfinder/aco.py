@@ -38,3 +38,8 @@ class ACOBase:
     def _edge_key(from_node: Node, to_node: Node) -> Edge:
         """Return the canonical key for an undirected grid edge."""
         return (from_node, to_node) if from_node <= to_node else (to_node, from_node)
+    
+    def _reset_best(self):
+        """Reset the best path and cost found so far."""
+        self.best_path = None
+        self.best_cost = float("inf")

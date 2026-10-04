@@ -49,6 +49,7 @@ class GridACO(ACOBase):
             self.problem_type = ProblemType.GRID
             self.problem = problem
             pheromone_shape = problem.shape
+            self._reset_best()
         else:
             raise TypeError(f"Unsupported problem type: {type(problem).__name__}")
 
