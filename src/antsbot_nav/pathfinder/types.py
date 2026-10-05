@@ -3,8 +3,7 @@ from typing import Literal, ClassVar
 from enum import Enum
 from numpy.typing import ArrayLike
 import numpy as np
-
-from ..map.danger_map import DangerMap
+from ..map.smoke_diffusion_map import SmokeDiffusionMap
 
 __all__ = ["ComputeBackend", "ProblemType", "GridProblem", "AACOGridProblem", "TSPProblem"]
 
@@ -18,9 +17,11 @@ class ProblemType(Enum):
 
 @dataclass
 class GridProblem:
+    # 4 connectivity: up, down, left, right
     _CARDINAL_DIRS: ClassVar[tuple[tuple[int, int], ...]] = (
         (-1, 0), (1, 0), (0, -1), (0, 1),
     )
+    # 8 connectivity Diagonal directions: up-left, up-right, down-left, down-right
     _DIAGONAL_DIRS: ClassVar[tuple[tuple[int, int], ...]] = (
         (-1, -1), (-1, 1), (1, -1), (1, 1),
     )
@@ -80,7 +81,7 @@ class GridProblem:
 
 @dataclass
 class AACOGridProblem(GridProblem):
-    danger_map: DangerMap = field(kw_only=True)
+    smoke_diffusion_map: SmokeDiffusionMap = field()
 
 @dataclass
 class TSPProblem:

@@ -9,7 +9,9 @@ def generate_maze(
     end: tuple[int, int],
     seed: Optional[int] = None,
 ) -> np.ndarray:
-    """Generate a perfect maze using recursive backtracking.
+    """
+    Warning: This function was written by AI. I don't know how it works. Please check the code before using it.
+    Generate a perfect maze using recursive backtracking.
 
     Parameters
     ----------
